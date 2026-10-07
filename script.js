@@ -234,71 +234,296 @@ const io = new IntersectionObserver(
 );
 const reveal = () => $$(".rv:not(.in)").forEach((el) => io.observe(el));
 
-/* hero workflow visual */
+/* hero workflow visual — AI automation pipeline */
 (() => {
-  const labels = ["مسئله", "هوش مصنوعی", "اتوماسیون", "API / داده", "نتیجه"];
-  const pts = [
-    [200, 50],
-    [110, 130],
-    [290, 210],
-    [110, 290],
-    [200, 370],
+  const viz = $("#viz"),
+    svg = $("#vsvg");
+  const P = {
+    problem: [84, 70],
+    data: [318, 108],
+    core: [200, 206],
+    auto: [318, 310],
+    result: [100, 352],
+  };
+  const L = {
+    problem: "مسئله",
+    data: "داده و API",
+    auto: "اتوماسیون",
+    result: "نتیجه",
+  };
+  const paths = [
+    "M84 70C84 150 130 206 200 206",
+    "M200 206C270 206 318 170 318 108",
+    "M318 108C372 160 372 260 318 310",
+    "M318 310C260 372 160 372 100 352",
   ];
-  let w = "",
-    n = "",
-    d = "";
-  pts.forEach((p, i) => {
-    if (i < 4) {
-      const q = pts[i + 1],
-        my = (p[1] + q[1]) / 2,
-        path = `M${p[0]} ${p[1] + 16} C${p[0]} ${my},${q[0]} ${my},${q[0]} ${
-          q[1] - 16
-        }`;
-      w += `<path class="wire" d="${path}"/>`;
-      if (!reduce)
-        d += `<circle class="dot" r="3"><animateMotion dur="${
-          2.2 + i * 0.3
-        }s" repeatCount="indefinite" begin="${
-          i * 0.4
-        }s" path="${path}"/></circle>`;
-    }
-    n += `<g class="nd" style="--d:${(0.5 + i * 0.35).toFixed(
-      2
-    )}" data-i="${i}"><rect x="${p[0] - 62}" y="${
-      p[1] - 18
-    }" width="124" height="36" rx="12"/><text x="${p[0]}" y="${p[1] + 5}">${
-      labels[i]
-    }</text></g>`;
-  });
-  $("#vsvg").innerHTML = w + d + n;
-  const viz = $("#viz");
-  let k = 0;
-  setInterval(() => {
-    $$(".nd", viz).forEach((g, i) => g.classList.toggle("on", i === k));
-    k = (k + 1) % 5;
-  }, 900);
-  if (!reduce)
-    viz.addEventListener("pointermove", (e) => {
-      const r = viz.getBoundingClientRect();
-      viz.style.setProperty(
-        "--mx",
-        ((e.clientX - r.left) / r.width - 0.5).toFixed(2)
-      );
-      viz.style.setProperty(
-        "--my",
-        ((e.clientY - r.top) / r.height - 0.5).toFixed(2)
-      );
-      $$(".nd", viz).forEach((g) => {
-        g.style.setProperty("--mx", viz.style.getPropertyValue("--mx"));
-        g.style.setProperty("--my", viz.style.getPropertyValue("--my"));
-      });
+  const col = ["ac", "hv", "ac2", "ac2"];
+  const grad = (id, c, o) =>
+    `<radialGradient id="${id}"><stop offset="0" style="stop-color:var(--${c});stop-opacity:${o}"/><stop offset="1" style="stop-color:var(--${c});stop-opacity:0"/></radialGradient>`;
+  const defs = `<defs>${grad("hz-gc", "ac", 0.5)}${grad(
+    "hz-mgd",
+    "ac",
+    0.22
+  )}${col
+    .map((c, i) => grad("hz-g" + i, c, 0.55))
+    .join(
+      ""
+    )}<linearGradient id="hz-sw"><stop offset="0" style="stop-color:var(--ac2);stop-opacity:0"/><stop offset=".5" style="stop-color:var(--ac2);stop-opacity:.8"/><stop offset="1" style="stop-color:var(--ac2);stop-opacity:0"/></linearGradient><clipPath id="hz-cc"><circle r="44"/></clipPath></defs>`;
+
+  const tw = [
+    [40, 60],
+    [360, 40],
+    [24, 230],
+    [372, 236],
+    [150, 26],
+    [260, 396],
+    [34, 396],
+    [236, 150],
+    [150, 290],
+    [350, 176],
+  ]
+    .map(
+      (p, i) =>
+        `<circle class="hz-tw" cx="${p[0]}" cy="${p[1]}" r="1.4" style="--dl:${(
+          i * 0.7
+        ).toFixed(1)}s"/>`
+    )
+    .join("");
+  const bg = `<g class="hz-bg"><circle class="hz-r" cx="200" cy="206" r="122"/><circle class="hz-r" cx="200" cy="206" r="168"/>${tw}</g>`;
+  const mg = `<circle class="hz-mg" r="90" fill="url(#hz-mgd)"/>`;
+  const wires = paths
+    .map(
+      (d, i) =>
+        `<path class="wire" d="${d}"/><path class="hz-flow" d="${d}" pathLength="100" style="--dl:${(
+          -i * 0.85
+        ).toFixed(2)}s"/>`
+    )
+    .join("");
+  const amb = reduce
+    ? ""
+    : paths
+        .map((d, i) =>
+          [0, 1]
+            .map((k) => {
+              const dur = (5.2 + i * 0.7).toFixed(1),
+                bgn = (-k * dur * 0.5).toFixed(1) + "s";
+              return `<circle r="1.8" opacity="0" style="fill:var(--${col[i]})"><animateMotion path="${d}" dur="${dur}s" begin="${bgn}" repeatCount="indefinite"/><animate attributeName="opacity" values="0;.75;.75;0" keyTimes="0;.15;.85;1" dur="${dur}s" begin="${bgn}" repeatCount="indefinite"/></circle>`;
+            })
+            .join("")
+        )
+        .join("");
+  const pk = paths
+    .map(
+      (d, i) =>
+        `<g opacity="0"><circle r="10" fill="url(#hz-g${i})"/><circle r="2.8" style="fill:var(--${col[i]})"/><animateMotion class="pm" path="${d}" dur="1.6s" begin="indefinite" fill="freeze"/><animate class="po" attributeName="opacity" values="0;1;1;0" keyTimes="0;.12;.86;1" dur="1.6s" begin="indefinite" fill="freeze"/></g>`
+    )
+    .join("");
+  const spin = (a, b, dur) =>
+    reduce
+      ? ""
+      : `<animateTransform attributeName="transform" type="rotate" from="${a}" to="${b}" dur="${dur}s" repeatCount="indefinite"/>`;
+  const bp = Array.from({ length: 8 }, (_, i) => {
+    const a = ((i * 45 + 22) * Math.PI) / 180;
+    return `<circle class="hz-bp" r="2" style="--dx:${(
+      Math.cos(a) * 82
+    ).toFixed(1)}px;--dy:${(Math.sin(a) * 82).toFixed(1)}px"/>`;
+  }).join("");
+  const core = `<g class="hz-core" transform="translate(${P.core})">
+<circle class="hz-cg" r="96" fill="url(#hz-gc)"/><circle class="hz-fx" r="78" fill="url(#hz-gc)"/>
+<circle class="hz-ob" r="64" stroke-dasharray="2 7"/><circle class="hz-ob b" r="84" stroke-dasharray="1 9"/>
+<g>${spin(
+    0,
+    360,
+    16
+  )}<circle cx="64" r="2.3" style="fill:var(--ac2)"/><circle cx="-64" r="1.5" style="fill:var(--ac)"/></g>
+<g>${spin(
+    360,
+    0,
+    26
+  )}<circle cx="84" r="1.8" style="fill:var(--hv)"/><circle cx="-54" cy="64" r="1.4" style="fill:var(--ac2)"/></g>
+<circle class="hz-pr" r="46"/><circle class="hz-pr" r="46" style="--dl:1.9s"/><circle class="hz-pg" r="46"/>
+<circle class="hz-cb" r="44"/><circle class="hz-ci" r="35"/>
+<g clip-path="url(#hz-cc)"><rect class="hz-sc" x="-44" y="-1" width="88" height="2"/></g>
+<text class="hz-ct" y="3">AI</text><text class="hz-cs" y="19">LLM</text>${bp}</g>`;
+  const node = (k, d) =>
+    `<g class="nd" data-k="${k}" style="--d:${d}"><g transform="translate(${P[k]})"><rect class="nr" x="-52" y="-17" width="104" height="34" rx="17"/><rect class="hz-ring" x="-52" y="-17" width="104" height="34" rx="17"/><circle class="hz-nd" cx="36" r="3"/><text x="-6" y="4.5">${L[k]}</text></g></g>`;
+  const nodes =
+    node("problem", 0.9) +
+    node("data", 0.7) +
+    node("auto", 0.8) +
+    node("result", 1);
+  const tokens = Array.from(
+    { length: 6 },
+    () => `<text class="hz-tk"></text>`
+  ).join("");
+  const sweep = `<rect class="hz-sw" x="0" y="0" width="400" height="2"/>`;
+  svg.innerHTML =
+    defs + bg + mg + wires + amb + pk + core + nodes + tokens + sweep;
+
+  /* choreography */
+  const el = {};
+  $$(".nd", svg).forEach((n) => (el[n.dataset.k] = n));
+  const pm = $$(".pm", svg),
+    po = $$(".po", svg),
+    fxs = $$(".hz-fx,.hz-pg,.hz-sc,.hz-bp,.hz-cb", svg);
+  let alive = false,
+    inView = true,
+    timers = [],
+    tokT = 0,
+    ti = 0,
+    lastSpot = -1;
+  const at = (ms, fn) => timers.push(setTimeout(fn, ms));
+  const act = (k) => {
+    const n = el[k];
+    if (!n) return;
+    n.classList.remove("on");
+    void n.getBoundingClientRect();
+    n.classList.add("on");
+    setTimeout(() => n.classList.remove("on"), 1500);
+  };
+  const processCore = () => {
+    fxs.forEach((f) => f.classList.remove("go"));
+    void svg.getBoundingClientRect();
+    fxs.forEach((f) => f.classList.add("go"));
+  };
+  const fire = (i, ms) => {
+    if (reduce) return;
+    [pm[i], po[i]].forEach((a) => {
+      a.setAttribute("dur", ms / 1000 + "s");
+      a.beginElement();
     });
-  viz.addEventListener("pointerleave", () =>
-    $$(".nd", viz).forEach((g) => {
-      g.style.setProperty("--mx", 0);
-      g.style.setProperty("--my", 0);
-    })
-  );
+  };
+  const cycle = () => {
+    if (!alive) return;
+    timers = [];
+    if (reduce) {
+      const ks = ["problem", "data", "auto", "result"];
+      let i = 0;
+      (function s() {
+        if (!alive) return;
+        act(ks[i++ % 4]);
+        timers = [setTimeout(s, 1800)];
+      })();
+      return;
+    }
+    const j = () => 0.88 + Math.random() * 0.24;
+    const d = [1800 * j(), 1500 * j(), 1500 * j(), 1700 * j()];
+    let t = 0;
+    act("problem");
+    fire(0, d[0]);
+    t += d[0];
+    at(t, processCore);
+    t += 460;
+    at(t, () => fire(1, d[1]));
+    t += d[1];
+    at(t, () => act("data"));
+    t += 240;
+    at(t, () => fire(2, d[2]));
+    t += d[2];
+    at(t, () => act("auto"));
+    t += 240;
+    at(t, () => fire(3, d[3]));
+    t += d[3];
+    at(t, () => act("result"));
+    t += 2200 + Math.random() * 1400;
+    at(t, cycle);
+  };
+
+  /* micro data tokens */
+  const words = [
+    "API",
+    "JSON",
+    "POST",
+    "AI",
+    "DATA",
+    "LLM",
+    "1010",
+    "GET",
+    "{ }",
+  ];
+  const spots = [
+    [232, 44],
+    [44, 168],
+    [356, 212],
+    [262, 268],
+    [40, 282],
+    [200, 396],
+    [340, 372],
+    [148, 112],
+    [262, 150],
+  ];
+  const tk = $$(".hz-tk", svg);
+  const showToken = () => {
+    if (!alive || reduce) return;
+    const t = tk[ti++ % tk.length];
+    let s;
+    do s = Math.floor(Math.random() * spots.length);
+    while (s === lastSpot);
+    lastSpot = s;
+    t.setAttribute("x", spots[s][0]);
+    t.setAttribute("y", spots[s][1]);
+    t.textContent = words[Math.floor(Math.random() * words.length)];
+    t.classList.remove("go");
+    void t.getBoundingClientRect();
+    t.classList.add("go");
+    tokT = setTimeout(showToken, 1300 + Math.random() * 1400);
+  };
+
+  /* start / pause when hidden */
+  const sync = () => {
+    const on = inView && !document.hidden;
+    if (on === alive) return;
+    alive = on;
+    viz.classList.toggle("hz-off", !on);
+    if (on) {
+      svg.unpauseAnimations && svg.unpauseAnimations();
+      cycle();
+      showToken();
+    } else {
+      timers.forEach(clearTimeout);
+      clearTimeout(tokT);
+      svg.pauseAnimations && svg.pauseAnimations();
+    }
+  };
+  new IntersectionObserver((es) => {
+    inView = es[0].isIntersecting;
+    sync();
+  }).observe(viz);
+  document.addEventListener("visibilitychange", sync);
+  sync();
+
+  /* pointer reaction: depth parallax + soft glow that follows the cursor */
+  if (!reduce) {
+    let raf = 0,
+      px = 0,
+      py = 0;
+    const set = (k, v) => svg.style.setProperty(k, v);
+    const upd = () => {
+      raf = 0;
+      const m = svg.getScreenCTM();
+      if (!m) return;
+      const pt = svg.createSVGPoint();
+      pt.x = px;
+      pt.y = py;
+      const q = pt.matrixTransform(m.inverse());
+      const r = viz.getBoundingClientRect();
+      set("--gx", q.x.toFixed(1));
+      set("--gy", q.y.toFixed(1));
+      set("--mx", ((px - r.left) / r.width - 0.5).toFixed(2));
+      set("--my", ((py - r.top) / r.height - 0.5).toFixed(2));
+    };
+    viz.addEventListener("pointermove", (e) => {
+      px = e.clientX;
+      py = e.clientY;
+      if (!raf) raf = requestAnimationFrame(upd);
+    });
+    viz.addEventListener("pointerleave", () => {
+      set("--gx", 200);
+      set("--gy", 210);
+      set("--mx", 0);
+      set("--my", 0);
+    });
+  }
 })();
 
 /* expertise tabs */
