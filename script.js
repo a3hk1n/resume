@@ -934,4 +934,175 @@ function initPlayer(root) {
 /* stop playback when the case study closes */
 dlg.addEventListener("close", () => $$("video", dlg).forEach((v) => v.pause()));
 
+/* ===== Hero 3D viz tilt + floating particles ===== */
+(() => {
+  if (reduce) return;
+  const wrap = document.getElementById("viz3w");
+  const viz = document.getElementById("viz");
+  if (!wrap || !viz) return;
+
+  /* Inject floating particles */
+  const pts = document.getElementById("viz-pts");
+  if (pts) {
+    const colors = ["var(--ac)", "var(--ac2)", "var(--ac)"];
+    const count = matchMedia("(max-width:600px)").matches ? 0 : 10;
+    for (let i = 0; i < count; i++) {
+      const el = document.createElement("div");
+      el.className = "viz-p";
+      const size = 2 + Math.random() * 3;
+      const x = 5 + Math.random() * 90;
+      const y = 15 + Math.random() * 70;
+      const tx = (Math.random() - 0.5) * 40;
+      const ty = -20 - Math.random() * 50;
+      const dur = 5 + Math.random() * 5;
+      const dl = Math.random() * 6;
+      const op = 0.2 + Math.random() * 0.35;
+      el.style.cssText = `
+        width:${size}px;height:${size}px;
+        left:${x}%;top:${y}%;
+        background:${colors[i % colors.length]};
+        --vp-dur:${dur.toFixed(1)}s;
+        --vp-dl:${dl.toFixed(1)}s;
+        --vp-tx:${tx.toFixed(0)}px;
+        --vp-ty:${ty.toFixed(0)}px;
+        --vp-op:${op.toFixed(2)};
+      `;
+      pts.appendChild(el);
+    }
+  }
+
+  /* Only on desktop pointer devices */
+  if (!matchMedia("(hover:hover) and (pointer:fine)").matches) return;
+
+  const MAX_TILT = 10; /* degrees */
+  let rafId = 0,
+    cx = 0,
+    cy = 0;
+
+  wrap.addEventListener(
+    "pointermove",
+    (e) => {
+      const r = wrap.getBoundingClientRect();
+      cx = (e.clientX - r.left) / r.width - 0.5; /* -0.5 … 0.5 */
+      cy = (e.clientY - r.top) / r.height - 0.5;
+      if (!rafId) rafId = requestAnimationFrame(applyTilt);
+    },
+    { passive: true }
+  );
+
+  wrap.addEventListener("pointerleave", () => {
+    cx = 0;
+    cy = 0;
+    if (!rafId) rafId = requestAnimationFrame(applyTilt);
+    viz.style.transition =
+      "transform 0.7s cubic-bezier(0.2,0.7,0.2,1), box-shadow 0.5s";
+    setTimeout(() => {
+      viz.style.transition = "";
+    }, 750);
+  });
+
+  function applyTilt() {
+    rafId = 0;
+    const rx = -cy * MAX_TILT;
+    const ry = cx * MAX_TILT;
+    viz.style.transform = `rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(
+      2
+    )}deg) translateZ(0)`;
+
+    /* Move the dynamic glow spotlight */
+    const vx = ((cx + 0.5) * 100).toFixed(1);
+    const vy = ((cy + 0.5) * 100).toFixed(1);
+    /* secondary orb slightly offset */
+    const vx2 = (100 - (cx + 0.5) * 80).toFixed(1);
+    const vy2 = ((cy + 0.5) * 80 + 20).toFixed(1);
+    viz.style.setProperty("--vx", vx + "%");
+    viz.style.setProperty("--vy", vy + "%");
+    viz.style.setProperty("--vx2", vx2 + "%");
+    viz.style.setProperty("--vy2", vy2 + "%");
+
+    /* Subtle shadow to reinforce depth */
+    const sx = (cx * 18).toFixed(1);
+    const sy = (cy * 14).toFixed(1);
+    viz.style.boxShadow = `${sx}px ${sy}px 48px -10px color-mix(in srgb, var(--ac) 28%, transparent)`;
+  }
+})();
+
+/* ===== Project card 3D tilt ===== */
+(() => {
+  if (reduce) return;
+  if (!matchMedia("(hover:hover) and (pointer:fine)").matches) return;
+
+  const MAX = 8; /* degrees */
+  let rafMap = new WeakMap();
+
+  document.addEventListener(
+    "pointermove",
+    (e) => {
+      const proj = e.target.closest && e.target.closest(".proj");
+      if (!proj) return;
+      const shot = proj.querySelector(".shot");
+      if (!shot) return;
+
+      const r = proj.getBoundingClientRect();
+      const cx = (e.clientX - r.left) / r.width - 0.5;
+      const cy = (e.clientY - r.top) / r.height - 0.5;
+
+      if (!rafMap.get(proj)) {
+        const id = requestAnimationFrame(() => {
+          rafMap.delete(proj);
+          const rx = -cy * MAX;
+          const ry = cx * MAX;
+
+          proj.style.transform = `perspective(1200px) rotateX(${rx.toFixed(
+            2
+          )}deg) rotateY(${ry.toFixed(2)}deg)`;
+          proj.classList.add("tilt-active");
+          proj.classList.remove("tilt-idle");
+
+          /* Move light reflection spot on image */
+          const sr = shot.getBoundingClientRect();
+          const sx = (((e.clientX - sr.left) / sr.width) * 100).toFixed(1);
+          const sy = (((e.clientY - sr.top) / sr.height) * 100).toFixed(1);
+          shot.style.setProperty("--sx", sx + "%");
+          shot.style.setProperty("--sy", sy + "%");
+        });
+        rafMap.set(proj, id);
+      }
+    },
+    { passive: true }
+  );
+
+  document.addEventListener(
+    "pointerleave",
+    (e) => {
+      const proj = e.target.closest && e.target.closest(".proj");
+      if (proj) resetProj(proj);
+    },
+    { passive: true, capture: true }
+  );
+
+  /* Also reset when pointer leaves the section */
+  document.addEventListener(
+    "pointermove",
+    (e) => {
+      $$(".proj.tilt-active").forEach((proj) => {
+        if (!proj.contains(e.target) && proj !== e.target) resetProj(proj);
+      });
+    },
+    { passive: true }
+  );
+
+  function resetProj(proj) {
+    proj.classList.add("tilt-idle");
+    proj.classList.remove("tilt-active");
+    proj.style.transform = "";
+    const shot = proj.querySelector(".shot");
+    if (shot) {
+      shot.style.removeProperty("--sx");
+      shot.style.removeProperty("--sy");
+    }
+    setTimeout(() => proj.classList.remove("tilt-idle"), 700);
+  }
+})();
+
 reveal();
