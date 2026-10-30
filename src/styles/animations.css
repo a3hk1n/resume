@@ -1,0 +1,161 @@
+@keyframes w {
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+@keyframes hz-tw {
+  50% {
+    opacity: 0.6;
+  }
+}
+@keyframes dash {
+  to {
+    stroke-dashoffset: -18;
+  }
+}
+@keyframes hz-flow {
+  from {
+    stroke-dashoffset: 12;
+  }
+  to {
+    stroke-dashoffset: -88;
+  }
+}
+@keyframes hz-ring {
+  from {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.28, 1.7);
+  }
+}
+@keyframes hz-br {
+  50% {
+    transform: scale(1.07);
+    opacity: 0.78;
+  }
+}
+@keyframes hz-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes hz-pu {
+  0% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.2);
+  }
+}
+@keyframes hz-fl {
+  from {
+    opacity: 0.95;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.35);
+  }
+}
+@keyframes hz-pg {
+  from {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.5);
+  }
+}
+@keyframes hz-sc {
+  0% {
+    opacity: 0;
+    transform: translateY(-44px);
+  }
+  15%,
+  85% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(44px);
+  }
+}
+@keyframes hz-bp {
+  from {
+    opacity: 0.95;
+    transform: translate(calc(var(--dx) * 0.55), calc(var(--dy) * 0.55))
+      scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(var(--dx), var(--dy)) scale(0.3);
+  }
+}
+@keyframes hz-cbf {
+  30% {
+    stroke: var(--ac2);
+    stroke-width: 2;
+  }
+}
+@keyframes hz-tk {
+  0% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  20% {
+    opacity: 0.6;
+  }
+  80% {
+    opacity: 0.45;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+@keyframes hz-sw {
+  0% {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  8%,
+  92% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(426px);
+  }
+}
+@keyframes mv {
+  from {
+    left: 0;
+  }
+  to {
+    left: calc(100% - 7px);
+  }
+}
+@keyframes vp-float {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(1);
+  }
+  20% {
+    opacity: var(--vp-op, 0.45);
+  }
+  80% {
+    opacity: var(--vp-op, 0.35);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--vp-tx, 0px), var(--vp-ty, -40px)) scale(0.4);
+  }
+}
